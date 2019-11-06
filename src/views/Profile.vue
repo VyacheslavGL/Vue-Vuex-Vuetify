@@ -1,0 +1,122 @@
+<template>
+    <div class="profile">
+        <h1>{{$route.meta.title}}</h1>
+        <v-divider></v-divider>
+        <v-form>
+            <v-row>
+                <v-col sm="4">
+                    <v-text-field
+                            :error-messages = "nameErrors"
+                            v-model="userName"
+                            label="Ваше имя"
+                            @input="$v.userName.$touch()"
+                            @blur="$v.userName.$touch()"
+                    ></v-text-field>
+                    <v-select
+                            :items = 'cities'
+                            label="Ваш город"
+                    ></v-select>
+                    <v-select
+                            item-value="lang"
+                            item-text="title"
+                            :items = 'languages'
+                            label="Ваш Интерфейс"
+                    ></v-select>
+                    <v-text-field label="Ваше email"></v-text-field>
+                    <v-text-field v-mask="phoneMask" label="Ваше телефон"></v-text-field>
+                    <v-radio-group label="Пол:" row>
+                        <v-radio label="Мужской" value="male"></v-radio>
+                        <v-radio label="Женский" value="female"></v-radio>
+                    </v-radio-group>
+                    <v-checkbox label="Получать уведомление о новых собаках" />
+                    <v-slider
+                     v-model="height" min="10" max="150" thumb-label="always"
+                    >
+                        <template #label>
+                            Рост собаки: ({{height}} см)
+                        </template>
+                    </v-slider>
+<!--                    календарь-->
+                    <v-menu
+                            v-model="showDatePiker"
+                            :close-on-content-click="false"
+                            :nudge-right="40"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="290px"
+                    >
+                        <template #activator="{ on }">
+                            <v-text-field
+                                    label="Дата рождения"
+                                    :value="formatedBirthday"
+                                    readonly
+                                    v-on="on"
+                            ></v-text-field>
+                        </template>
+                        <v-date-picker
+                                first-day-of-week="1"
+                                v-model="birthday"
+                                @input="showDatePiker = false"
+                        ></v-date-picker>
+                    </v-menu>
+                </v-col>
+            </v-row>
+        </v-form>
+    </div>
+</template>
+
+<script>
+
+    import {mask} from 'vue-the-mask'
+    import { validationMixin } from 'vuelidate'
+    import {required, maxValue, minValue } from 'vuelidate/lib/validators'
+    const russianLetters = value => /^[а-яА-Я]{2,25}$/.test(value);
+
+    export default {
+        directives: {
+          mask
+        },
+        mixins: [validationMixin],
+        data(){
+            return{
+                cities:['Санкт-Петербург', 'Москва', 'Екатеринбург', 'Казань'],
+                languages:[
+                    {
+                        lang: 'en',
+                        title: "English"
+                    },
+                    {
+                        lang: 'ru',
+                        title: "Русский"
+                    },
+                ],
+                height: 10,
+                showDatePiker: false,
+                birthday: '',
+                phoneMask: '+7 (###) ###-##-##',
+                userName: '',
+            }
+        },
+        computed:{
+            formatedBirthday(){
+                return this.birthday.split('-').reverse().join('.');
+            },
+            nameErrors(){
+                const errors = [];
+                // $dirty - если поле не изменяли то ошибку не показывать
+                if (!this.$v.userName.$dirty)return errors;
+                if(!this.$v.userName.required){
+                    errors.push('Заполните имя')
+                }
+                if(!this.$v.userName.russianLetters){
+                    errors.push('Имя должно содержать только кирилицу!')
+                }
+                return errors;
+            }
+        },
+        validations: {
+            height: {required, minValue: minValue(10), maxValue: maxValue(150)},
+            userName: {required, russianLetters},
+        }
+    }
+</script>
