@@ -1,6 +1,11 @@
 import axios from "axios";
+
+
 const entry = "https://dog.ceo/api/";
 // async function apiRequest(url) {
+
+// Your web app's Firebase configuration
+
 
 const apiRequest = async function(url) {
     const respons = await axios.get(`${entry}${url}`);

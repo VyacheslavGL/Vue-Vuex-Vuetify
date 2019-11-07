@@ -1,7 +1,7 @@
 <template>
     <v-app id="app">
 <!--        clipped - опускает ниже app-->
-        <v-navigation-drawer v-model="showMenu" clipped app>
+        <v-navigation-drawer v-model="menu.showMenu" clipped app>
             <v-list dense>
                 <v-list-item link v-for="item in menuItem" :to="item.link" :key="item.link">
                     <v-list-item-action>
@@ -50,22 +50,29 @@
 </template>
 
 <script>
+    // import Vue from 'vue'
     import {LOAD_BREEDS, LOAD_FAVORITES} from "./store/action.types";
+    import { getDrawerState, saveDrawerState } from "./services/Utils";
 
-// Декларативный - когда говорим что должно быть но не говорим что для этого надо сделать и императивный - в процедурном стиле
+    // Декларативный - когда говорим что должно быть но не говорим что для этого надо сделать и императивный - в процедурном стиле
 
     export default {
-        async created() {
+        async beforeCreate() {
+        // async created() {
             // dispatch - запускает метод
             //Promise.all - пишем если нужено параллельное выполнение функции
             await Promise.all([
                 this.$store.dispatch(LOAD_BREEDS),
                 this.$store.dispatch(LOAD_FAVORITES),
-            ])
+            ]);
+            // this.showMenu = await getDrawerState();
+            //обьявление реактивного свойства
+            // Vue.set(this, 'showMenu', await getDrawerState())
+            this.$set(this.menu, 'showMenu', await getDrawerState());
         },
         data(){
             return{
-                showMenu: false
+                menu: {}
             }
         },
         computed: {
@@ -83,8 +90,9 @@
 
         },
         methods:{
-            toggleDrawer(){
-                this.showMenu = !this.showMenu;
+           async toggleDrawer(){
+                this.menu.showMenu = !this.menu.showMenu;
+                await saveDrawerState(this.menu.showMenu);
             }
         },
         mounted() {
